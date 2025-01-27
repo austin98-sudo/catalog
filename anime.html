@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Catalog</title>
+	<script src="./data/anime.js" type="text/javascript"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        h1 {
+			margin-top: 0;
+            text-align: center;
+            padding: 20px;
+            background: #333;
+            color: #fff;
+        }
+		
+		h1 a {
+			color: white;
+			text-decoration: none;
+			position: absolute;
+			left: 25px;
+		}
+		
+        .view-toggle {
+            display: flex;
+            justify-content: center;
+            margin: 20px;
+        }
+        .view-toggle button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        .view-toggle button:hover {
+            background-color: #0056b3;
+        }
+        .hidden {
+            display: none!important;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+        .grid-item {
+            text-align: center;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .grid-item img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .grid-item h3 {
+            font-size: 1rem;
+            color: #333;
+            margin: 0;
+        }
+        .checkbox {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            background: green;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .table-container {
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #333;
+            color: #fff;
+        }
+        .checkbox-cell {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1><a href='index.html'>Back</a>Anime</h1>
+    <div class="view-toggle">
+        <button onclick="showGridView()">Grid View</button>
+        <button onclick="showTableView()">Table View</button>
+    </div>
+    <div id="grid-view" class="grid-container"></div>
+    <div id="table-view" class="table-container hidden">
+        <table id="game-table">
+            <thead>
+                <tr>
+                    <th>Watched</th>
+                    <th>Title</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+		// Sort games alphabetically by title
+        const sortedGames = [...animes].sort((a, b) => a.title.localeCompare(b.title));
+
+        // Render grid view
+        const renderGridView = () => {
+            const gridView = document.getElementById('grid-view');
+            gridView.innerHTML = '';
+            sortedGames.forEach(game => {
+                const item = document.createElement('div');
+                item.className = 'grid-item';
+                item.innerHTML = `
+                    ${game.watched ? '<div class="checkbox">✓</div>' : ''}
+                    <img src="${game.coverPhoto}" alt="${game.title}">
+                    <h3>${game.title}</h3>
+                `;
+                gridView.appendChild(item);
+            });
+        };
+
+        // Render table view
+        const renderTableView = () => {
+            const tableBody = document.querySelector('#game-table tbody');
+            tableBody.innerHTML = '';
+            sortedGames.forEach(game => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="checkbox-cell">${game.watched ? '✓' : ''}</td>
+                    <td>${game.title}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        };
+
+        // Switch views
+        const showGridView = () => {
+            document.getElementById('grid-view').classList.remove('hidden');
+            document.getElementById('table-view').classList.add('hidden');
+        };
+
+        const showTableView = () => {
+            document.getElementById('grid-view').classList.add('hidden');
+            document.getElementById('table-view').classList.remove('hidden');
+        };
+
+        // Initial render
+        renderGridView();
+        renderTableView();
+    </script>
+</body>
+</html>

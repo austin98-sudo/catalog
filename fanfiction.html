@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fanfiction Tracker</title>
+	<script src="./data/fanfiction.js" type="text/javascript"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        h1 {
+			margin-top: 0;
+            text-align: center;
+            padding: 20px;
+            background: #333;
+            color: white;
+        }
+		h1 a {
+			color: white;
+			text-decoration: none;
+			position: absolute;
+			left: 25px;
+		}
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #333;
+            color: white;
+        }
+        .group-header {
+            background: #f4f4f4;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .rating-stars {
+            color: #ffc107;
+            font-size: 18px;
+        }
+        .downloaded-checkmark {
+            color: green;
+            font-size: 20px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            width: 80%;
+            max-width: 600px;
+        }
+        .modal.active {
+            display: block;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h2 {
+            margin: 0;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1><a href='index.html'>Back</a>Fanfiction Tracker</h1>
+    <div class="container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Rating</th>
+                    <th>Characters</th>
+                    <th>Length</th>
+                    <th>Downloaded</th>
+                </tr>
+            </thead>
+            <tbody id="fanfiction-table">
+                <!-- Entries will be dynamically added here -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal" id="commentsModal">
+        <div class="modal-header">
+            <h2>Comments</h2>
+            <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <p id="modalContent"></p>
+    </div>
+    <div class="overlay" id="overlay" onclick="closeModal()"></div>
+
+    <script>
+        // Static fanfiction data
+        
+
+        // Render the table grouped by "Based On"
+        function renderFanfictionTable() {
+            const tableBody = document.getElementById("fanfiction-table");
+            tableBody.innerHTML = "";
+
+            const grouped = fanfictions.reduce((acc, fanfic) => {
+                acc[fanfic.basedOn] = acc[fanfic.basedOn] || [];
+                acc[fanfic.basedOn].push(fanfic);
+                return acc;
+            }, {});
+
+            Object.keys(grouped).forEach((basedOn) => {
+                // Group Header
+                const groupHeader = document.createElement("tr");
+                groupHeader.className = "group-header";
+                groupHeader.innerHTML = `<td colspan="6">${basedOn}</td>`;
+                tableBody.appendChild(groupHeader);
+
+                grouped[basedOn].forEach((fanfic) => {
+                    const row = document.createElement("tr");
+
+                    const titleCell = document.createElement("td");
+                    titleCell.innerText = fanfic.title;
+                    titleCell.style.cursor = "pointer";
+                    titleCell.onclick = () => showComments(fanfic.comments);
+
+                    const ratingCell = document.createElement("td");
+                    ratingCell.innerHTML = "★".repeat(fanfic.rating);
+
+                    const charactersCell = document.createElement("td");
+                    charactersCell.innerText = fanfic.characters;
+
+                    const lengthCell = document.createElement("td");
+                    lengthCell.innerText = fanfic.length;
+
+                    const downloadedCell = document.createElement("td");
+                    downloadedCell.innerHTML = fanfic.downloaded ? "✔" : "";
+
+                    row.appendChild(titleCell);
+                    row.appendChild(ratingCell);
+                    row.appendChild(charactersCell);
+                    row.appendChild(lengthCell);
+                    row.appendChild(downloadedCell);
+
+                    tableBody.appendChild(row);
+                });
+            });
+        }
+
+        // Show comments in a modal
+        function showComments(comments) {
+            const modal = document.getElementById("commentsModal");
+            const overlay = document.getElementById("overlay");
+            document.getElementById("modalContent").innerText = comments || "No comments available.";
+            modal.classList.add("active");
+            overlay.classList.add("active");
+        }
+
+        // Close the modal
+        function closeModal() {
+            const modal = document.getElementById("commentsModal");
+            const overlay = document.getElementById("overlay");
+            modal.classList.remove("active");
+            overlay.classList.remove("active");
+        }
+
+        // Initial render
+        renderFanfictionTable();
+    </script>
+</body>
+</html>

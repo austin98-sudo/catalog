@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Catalog</title>
+	<script src="./data/movies.js" type="text/javascript"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+		
+		button {
+    		font-family: Arial, sans-serif;
+    		font-size: 16px;
+    		padding: 10px 20px;
+	    	margin: 5px;
+	    	border: none;
+	    	border-radius: 5px;
+	    	cursor: pointer;
+	   }
+		
+        h1 {
+            text-align: center;
+            padding: 20px;
+            background: #333;
+            color: #fff;
+			margin-top: 0
+        }
+		
+		h1 a {
+			color: white;
+			text-decoration: none;
+			position: absolute;
+			left: 25px;
+		}
+		
+        .view-toggle {
+            display: flex;
+            justify-content: center;
+            margin: 20px;
+        }
+        .view-toggle button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .hidden {
+            display: none!important;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+        .grid-item {
+            text-align: center;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .grid-item img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .grid-item h3 {
+            font-size: 1rem;
+            color: #333;
+            margin: 0;
+        }
+        .checkbox {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            background: green;
+			color: white;
+            border-radius: 50%;
+            display: inline-block;
+			color: white!important;
+        }
+        .table-container {
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #333;
+            color: #fff;
+        }
+        .series-title {
+            background: #f4f4f4;
+            font-weight: bold;
+            text-align: left;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        .checkbox-cell {
+            text-align: center;
+			color: green;
+			font-size: 1.2em
+        }
+    </style>
+</head>
+<body>
+    <h1><a href='index.html'>Back</a>Movie Catalog</h1>
+    <div class="view-toggle">
+        <button onclick="showGridView()">Grid View</button>
+        <button onclick="showTableView()">Table View</button>
+    </div>
+    <div id="grid-view" class="grid-container"></div>
+    <div id="table-view" class="table-container hidden">
+        <table id="book-table">
+            <thead>
+                <tr>
+                    <th>Owned</th>
+                    <th>Title</th>
+                    <th>Series</th>
+                    <th>Number in Series</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+		// Sort books for the grid view
+        const sortedBooks = [...movies].sort((a, b) => {
+            if (a.series && b.series) {
+                if (a.series !== b.series) return a.series.localeCompare(b.series);
+                if (a.numberInSeries && b.numberInSeries) return a.numberInSeries - b.numberInSeries;
+                return a.title.localeCompare(b.title);
+            } else if (a.series) {
+                return -1; // Series books come before standalone
+            } else if (b.series) {
+                return 1;
+            } else {
+                return a.title.localeCompare(b.title); // Sort standalone books alphabetically
+            }
+        });
+
+        // Group books for the table view
+        const groupBooks = () => {
+            const grouped = { "Standalone Books": [] };
+            movies.forEach(book => {
+                const groupKey = book.series || "Standalone Books";
+                if (!grouped[groupKey]) {
+                    grouped[groupKey] = [];
+                }
+                grouped[groupKey].push(book);
+            });
+
+            // Sort standalone books first
+            const standalone = grouped["Standalone Books"];
+            standalone.sort((a, b) => a.title.localeCompare(b.title));
+
+            // Sort series groups by series number and title
+            for (const key in grouped) {
+                if (key !== "Standalone Books") {
+                    grouped[key].sort((a, b) => {
+                        if (a.numberInSeries && b.numberInSeries) return a.numberInSeries - b.numberInSeries;
+                        return a.title.localeCompare(b.title);
+                    });
+                }
+            }
+            return grouped;
+        };
+
+        const groupedBooks = groupBooks();
+
+        // Render grid view
+        const renderGridView = () => {
+            const gridView = document.getElementById('grid-view');
+            gridView.innerHTML = '';
+            sortedBooks.forEach(book => {
+                const item = document.createElement('div');
+                item.className = 'grid-item';
+                item.innerHTML = `
+                    ${book.owned ? '<div class="checkbox">✓</div>' : ''}
+                    <img src="${book.coverPhoto}" alt="${book.title}">
+                    <h3>${book.title}</h3>`;
+                gridView.appendChild(item);
+            });
+        };
+
+        // Render table view
+        const renderTableView = () => {
+            const tableBody = document.querySelector('#book-table tbody');
+            tableBody.innerHTML = '';
+
+            // Render standalone books first
+            groupedBooks["Standalone Books"].forEach(book => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="checkbox-cell">${book.owned ? '✓' : ''}</td>
+                    <td>${book.title}</td>
+                    <td>-</td>
+                    <td>-</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Render series groups
+            Object.keys(groupedBooks)
+                .filter(group => group !== "Standalone Books")
+                .forEach(group => {
+                    const seriesRow = document.createElement('tr');
+                    const seriesCell = document.createElement('td');
+                    seriesCell.colSpan = 4;
+                    seriesCell.className = 'series-title';
+                    seriesCell.textContent = group;
+                    seriesRow.appendChild(seriesCell);
+                    tableBody.appendChild(seriesRow);
+
+                    groupedBooks[group].forEach(book => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="checkbox-cell">${book.owned ? '✓' : ''}</td>
+                            <td>${book.title}</td>
+                            <td>${book.series}</td>
+                            <td>${book.numberInSeries || '-'}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                });
+        };
+
+        // Switch views
+        const showGridView = () => {
+            document.getElementById('grid-view').classList.remove('hidden');
+            document.getElementById('table-view').classList.add('hidden');
+        };
+
+        const showTableView = () => {
+            document.getElementById('grid-view').classList.add('hidden');
+            document.getElementById('table-view').classList.remove('hidden');
+        };
+
+        // Initial render
+        renderGridView();
+        renderTableView();
+    </script>
+</body>
+</html>
